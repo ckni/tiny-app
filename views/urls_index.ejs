@@ -1,12 +1,13 @@
 <html lang="en">
-<head>
-  <title>TinyApp</title>
-</head>
-<body>
-  <% include partials/_header %>
-  <p>shortURL : longURL</p>
-  <% for (var url in urls) { %>
-    <p><%= url %> : <%= urls[url] %></p>
-  <% } %>
-</body>
+  <head>
+    <% include partials/_head %>
+  </head>
+  <body>
+    <% include partials/_header %>
+    <p>Shortened || Original</p>
+    <% for (var url in urls) { %>
+      <p><%= url %> || <%= urls[url] %></p>
+    <% } %>
+    <% include partials/_footer.ejs %>
+  </body>
 </html>

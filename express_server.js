@@ -30,14 +30,8 @@ function generateRandomString() {
   }
 }
 
-// home page
+// new URL page
 app.get("/", (req, res) => {
-  let templateVars = { urls: urlDatabase };
-  res.render("partials/_header", templateVars);
-});
-
-// shorten new URL page
-app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
