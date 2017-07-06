@@ -4,10 +4,9 @@
   </head>
   <body>
     <% include partials/_header %>
-    <br>
     <form action="/urls" method="POST">
-      <input id="longURL" type="text" name="longURL" placeholder="Paste a link to shorten it" style="width: 500px">
-      <input type="submit" value="Shorten" style="color:white;background-color:#1597eb;">
+      <input id="longURL" type="text" name="longURL" style="width:500px;" placeholder="Paste a link to shorten it">
+      <input class="blue" type="submit" value="Shorten" >
     </form>
     <% include partials/_footer.ejs %>
   </body>

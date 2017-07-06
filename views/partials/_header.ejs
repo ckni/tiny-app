@@ -1,6 +1,17 @@
 <img src="https://raw.githubusercontent.com/kaichesterni/tiny-app/master/logo.png" alt="TinyApp&trade; logo" width="200px">
 <br><br>
 <div>
-  <a href="/">Shorten</a>
-  <a href="/urls">Database</a>
+  <form class="nav" method="GET" action="/"><input type="submit" value="Shorten"></form>
+  <form class="nav" method="GET" action="/urls"><input type="submit" value="Database"></form>
+  <% if (usr === "guest") { %>
+    <form class="nav" method="POST" action="/login">
+      <input type="text" name="username" style="width:200px;" placeholder="Welcome, guest">
+      <input type="submit" value="Login">
+    </form>
+  <% } else { %>
+    <form class="nav" method="POST" action="/logout">
+      <input style="width:200px;" value="Welcome, <%= usr %>" disabled>
+      <input type="submit" value="Logout">
+    </form>
+  <% } %>
 </div>

@@ -2,11 +2,13 @@
 
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
+const PORT = process.env.PORT || 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 // hardcoded sample database
 let urlDatabase = {
@@ -33,7 +35,26 @@ function generateRandomString() {
 
 // new URL page
 app.get("/", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {};
+  if (req.cookies.username) {
+    templateVars.usr = req.cookies.username;
+  } else {
+    templateVars.usr = "guest";
+  }
+  res.render("urls_new", templateVars);
+});
+
+// login endpoint
+app.post("/login", (req, res) => {
+  const username = req.body.username;
+  res.cookie("username", username);
+  res.redirect("/");
+});
+
+// logout endpoint
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.redirect("/");
 });
 
 // add/edit link to database
@@ -50,20 +71,40 @@ app.post("/urls", (req, res) => {
 app.get("/urls/added/:key", (req, res) => {
   const templateVars = {
     url: req.query.url,
-    id: req.params.key,
+    id: req.params.key
   };
+  if (req.cookies.username) {
+    templateVars.usr = req.cookies.username;
+  } else {
+    templateVars.usr = "guest";
+  }
   res.render("urls_success", templateVars);
 });
 
 // database page
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    urls: urlDatabase
+  };
+  if (req.cookies.username) {
+    templateVars.usr = req.cookies.username;
+  } else {
+    templateVars.usr = "guest";
+  }
   res.render("urls_index", templateVars);
 });
 
 // go to edit URL page
 app.get("/urls/:id/edit", (req, res) => {
-  let templateVars = { urls: urlDatabase, url: req.params.id };
+  let templateVars = {
+    urls: urlDatabase,
+    url: req.params.id,
+  };
+  if (req.cookies.username) {
+    templateVars.usr = req.cookies.username;
+  } else {
+    templateVars.usr = "guest";
+  }
   res.render("urls_show", templateVars);
 });
 
@@ -80,7 +121,6 @@ app.get("/urls.json", (req, res) => {
 
 // redirection
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL];
   let linkVerify = `${longURL[0]}${longURL[1]}${longURL[2]}${longURL[3]}`;
   if (linkVerify !== "http") {
     longURL = "http://" + longURL;

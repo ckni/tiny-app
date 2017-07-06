@@ -4,11 +4,10 @@
   </head>
   <body>
     <% include partials/_header %>
-    <br>
     <p>Short URL: <%= url %></p>
     <form method="POST" action="/urls?key=<%= url %>">
-      <input id="longURL" type="text" name="longURL" placeholder="<%= urls[url] %>" style="width: 500px">
-      <input type="submit" value="Shorten" style="color:white;background-color:#1597eb;">
+      <input id="longURL" type="text" name="longURL" placeholder="<%= urls[url] %>" style="width:500px;">
+      <input value="Shorten" class="blue">
     </form>
     <% include partials/_footer.ejs %>
   </body>

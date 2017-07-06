@@ -4,10 +4,9 @@
   </head>
   <body>
     <% include partials/_header %>
-    <br>
-    <table class="success"><tr><td>Successfully shortened link from "<%= url %>" to "<%= id %>"!</td></tr></table>
-    <br>
-    <a href="/urls">View all links</a>
+    <form method="GET" action="/urls">
+      <input class="blue" style="width:500px;" value="Successfully shortened link from '<%= url %>' to '<%= id %>'" disabled>
+    </form>
     <% include partials/_footer.ejs %>
   </body>
 </html>
