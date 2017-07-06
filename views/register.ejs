@@ -1,0 +1,19 @@
+<html lang="en">
+  <head>
+    <% include partials/_head %>
+  </head>
+  <body>
+    <img src="https://raw.githubusercontent.com/kaichesterni/tiny-app/master/logo.png" alt="TinyApp&trade; logo" width="200px">
+    <br><br>
+    <div>
+      <form class="nav" method="GET" action="/"><input type="submit" value="Shorten"></form>
+      <form class="nav" method="GET" action="/urls"><input type="submit" value="Database"></form>
+    </div>
+    <form method="POST" action="/register">
+      <input type="email" name="email" placeholder="Email">
+      <input type="text" name="password" placeholder="Password">
+      <input class="blue" type="submit" value="Register">
+    </form>
+    <% include partials/_footer.ejs %>
+  </body>
+</html>

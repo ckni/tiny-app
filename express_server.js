@@ -4,20 +4,35 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 const PORT = process.env.PORT || 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
-// hardcoded sample database
+// hardcoded sample url database
 let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-// generate a key
+// hardcoded sample user database
+let usrDatabase = {
+  "123@tinyapp.com": {
+    email: "123@tinyapp.com"
+  },
+  "234@tinyapp.com": {
+    email: "234@tinyapp.com"
+  }
+};
+
+encrypt("123", "123@tinyapp.com");
+encrypt("234", "234@tinyapp.com");
+
+// generate a key or ID
 function generateRandomString() {
+
   const letters = "abcdefghijklmnopqrstuvwxyz";
   const possible = letters + letters.toUpperCase() + "0123456789";
   let string = "";
@@ -33,28 +48,65 @@ function generateRandomString() {
   }
 }
 
+// encrypt and store password
+function encrypt(password, email) {
+  usrDatabase[email].password = bcrypt.hashSync(password, 10);
+}
+
 // new URL page
 app.get("/", (req, res) => {
-  const templateVars = {};
-  if (req.cookies.username) {
-    templateVars.usr = req.cookies.username;
-  } else {
-    templateVars.usr = "guest";
+  const templateVars = { email: "guest" };
+  if (req.cookies.email) {
+    templateVars.email = req.cookies.email;
   }
   res.render("urls_new", templateVars);
 });
 
 // login endpoint
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
-  res.redirect("/");
+  const email = req.body.email;
+  const password = req.body.password;
+  if (usrDatabase[email]) {
+    bcrypt.compare(password, usrDatabase[email].password, (err, match) => {
+      if (match) {
+        res.cookie("email", email);
+      }
+      res.redirect("/");
+    });
+  } else {
+    res.redirect("/");
+  }
 });
 
 // logout endpoint
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("email");
   res.redirect("/");
+});
+
+// register page
+app.get("/register", (req, res) => {
+  res.render("register");
+});
+
+// register endpoint
+app.post("/register", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (email == "" || password == "") {
+    res.status(400).send("Empty email or password");
+  }
+  if (!usrDatabase[email]) {
+    usrDatabase[email] = {
+      email: email
+    };
+    encrypt(password, email);
+    console.log(usrDatabase);
+    res.cookie("email", email);
+    res.redirect("/");
+  } else {
+    res.status(400).send("Email already registered");
+  }
 });
 
 // add/edit link to database
@@ -71,12 +123,11 @@ app.post("/urls", (req, res) => {
 app.get("/urls/added/:key", (req, res) => {
   const templateVars = {
     url: req.query.url,
-    id: req.params.key
+    id: req.params.key,
+    email: "guest"
   };
-  if (req.cookies.username) {
-    templateVars.usr = req.cookies.username;
-  } else {
-    templateVars.usr = "guest";
+  if (req.cookies.email) {
+    templateVars.email = req.cookies.email;
   }
   res.render("urls_success", templateVars);
 });
@@ -84,12 +135,11 @@ app.get("/urls/added/:key", (req, res) => {
 // database page
 app.get("/urls", (req, res) => {
   let templateVars = {
-    urls: urlDatabase
+    urls: urlDatabase,
+    email: "guest"
   };
-  if (req.cookies.username) {
-    templateVars.usr = req.cookies.username;
-  } else {
-    templateVars.usr = "guest";
+  if (req.cookies.email) {
+    templateVars.email = req.cookies.email;
   }
   res.render("urls_index", templateVars);
 });
@@ -99,11 +149,10 @@ app.get("/urls/:id/edit", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
     url: req.params.id,
+    email: "guest"
   };
-  if (req.cookies.username) {
-    templateVars.usr = req.cookies.username;
-  } else {
-    templateVars.usr = "guest";
+  if (req.cookies.email) {
+    templateVars.email = req.cookies.email;
   }
   res.render("urls_show", templateVars);
 });
@@ -130,5 +179,5 @@ app.get("/u/:shortURL", (req, res) => {
 
 // start listening on port
 app.listen(PORT, () => {
-  console.log(`TinyApp v1.0.0 is now listening on port ${PORT}`);
+  console.log(`TinyApp is now listening on port ${PORT}`);
 });

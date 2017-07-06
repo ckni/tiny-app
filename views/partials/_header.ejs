@@ -3,15 +3,17 @@
 <div>
   <form class="nav" method="GET" action="/"><input type="submit" value="Shorten"></form>
   <form class="nav" method="GET" action="/urls"><input type="submit" value="Database"></form>
-  <% if (usr === "guest") { %>
-    <form class="nav" method="POST" action="/login">
-      <input type="text" name="username" style="width:200px;" placeholder="Welcome, guest">
-      <input type="submit" value="Login">
+  <% if (email !== "guest") { %>
+    <form class="nav" method="POST" action="/logout">
+      <button class="status" disabled>Welcome, <%= email %></button>
+      <input type="submit" value="Logout">
     </form>
   <% } else { %>
-    <form class="nav" method="POST" action="/logout">
-      <input style="width:200px;" value="Welcome, <%= usr %>" disabled>
-      <input type="submit" value="Logout">
+    <form class="nav" method="POST" action="/login">
+      <input type="email" name="email" style="width:150px;" placeholder="Email">
+      <input type="text" name="password" style="width:100px;" placeholder="Password">
+      <input type="submit" value="Login">
+      <a href="/register"><input type="button" value="Register"></a>
     </form>
   <% } %>
 </div>
