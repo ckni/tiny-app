@@ -62,6 +62,11 @@ app.get("/", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// login page
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
 // login endpoint
 app.post("/login", (req, res) => {
   const email = req.body.email;

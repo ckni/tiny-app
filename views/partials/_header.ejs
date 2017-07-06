@@ -1,19 +1,15 @@
 <img src="https://raw.githubusercontent.com/kaichesterni/tiny-app/master/logo.png" alt="TinyApp&trade; logo" width="200px">
 <br><br>
 <div>
-  <form class="nav" method="GET" action="/"><input type="submit" value="Shorten"></form>
-  <form class="nav" method="GET" action="/urls"><input type="submit" value="Database"></form>
+  <form class="nav" method="GET" action="/"><button class="status" type="submit">Shorten <i class="fa fa-compress" aria-hidden="true"></i></button></form>
+  <form class="nav" method="GET" action="/urls"><button class="status" type="submit">Database <i class="fa fa-database" aria-hidden="true"></i></button></form>
   <% if (email !== "guest") { %>
     <form class="nav" method="POST" action="/logout">
-      <button class="status" disabled>Welcome, <%= email %></button>
-      <input type="submit" value="Logout">
+      <button class="status" disabled><i class="fa fa-user" aria-hidden="true"></i> <%= email %></button>
+      <button class="status" type="submit" value="Logout">Logout <i class="fa fa-sign-out" aria-hidden="true"></i></button>
     </form>
   <% } else { %>
-    <form class="nav" method="POST" action="/login">
-      <input type="email" name="email" style="width:150px;" placeholder="Email">
-      <input type="text" name="password" style="width:100px;" placeholder="Password">
-      <input type="submit" value="Login">
-      <a href="/register"><input type="button" value="Register"></a>
-    </form>
+    <a href="/login"><button class="status" type="submit">Login <i class="fa fa-sign-in" aria-hidden="true"></i></button></a>
+    <a href="/register"><button class="status" type="button" value="Register">Register <i class="fa fa-user-plus" aria-hidden="true"></i></button></a>
   <% } %>
 </div>

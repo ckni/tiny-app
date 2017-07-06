@@ -8,12 +8,12 @@
     <div>
       <form class="nav" method="GET" action="/"><button class="status" type="submit">Shorten <i class="fa fa-compress" aria-hidden="true"></i></button></form>
       <form class="nav" method="GET" action="/urls"><button class="status" type="submit">Database <i class="fa fa-database" aria-hidden="true"></i></button></form>
-      <a href="/login"><button class="status" type="submit">Login <i class="fa fa-sign-in" aria-hidden="true"></i></button></a>
+      <a href="/register"><button class="status" type="button" value="Register">Register <i class="fa fa-user-plus" aria-hidden="true"></i></button></a>
     </div>
-    <form method="POST" action="/register">
+    <form method="POST" action="/login">
       <input type="email" name="email" placeholder="Email">
       <input type="password" name="password" placeholder="Password">
-      <input class="blue" type="submit" value="Register">
+      <input class="blue" type="submit" value="Login">
     </form>
     <% include partials/_footer.ejs %>
   </body>
