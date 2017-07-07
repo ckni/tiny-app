@@ -23,8 +23,8 @@ TinyApp is a full stack web application built with [Node](https://nodejs.org) an
 
 ## Features
 
-* Shorten links (users only) - shortened links look like `tinyapp.ca/u/4klWTG`
-* User restrictions - users can register from the `tinyapp.ca/register` page, log in from the `tinyapp.ca/login` page, and log out by clicking the `Logout` button
+* Shorten links (users only) - shortened links look like `/u/4klWTG`
+* User restrictions - users can register from the `/register` page, log in from the `/login` page, and log out by clicking the `Logout` button
   * Only users can create new links
   * Only the creator of a link can edit or delete it
   * Anyone can use shortened links
