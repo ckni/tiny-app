@@ -1,3 +1,1 @@
-# TinyApp
-
-Will soon be a bit.ly clone, but at the moment, is a work in progress
+![Logo](https://raw.githubusercontent.com/kaichesterni/tiny-app/master/logo.png =200x)
