@@ -31,6 +31,7 @@ TinyApp is a full stack web application built with [Node](https://nodejs.org) an
 * Encrypted cookies and passwords - user ID is encrypted and stored in cookies using [cookie-session](https://www.npmjs.com/package/cookie-session), while passwords are encrypted and stored in the server memory using [bcrypt](https://www.npmjs.com/package/bcrypt)
   * As of the most current version of TinyApp, all URLs and user information are stored in JavaScript objects instead of a database. This means that **every time the server is restarted, all stored information is cleared**
   * There is hardcoded sample user and URL information in `express_server.js` for demonstration. Note that `encrypt(string)` is a function that hashes strings
+  
   ```js
   let urlDatabase = {
     "b2xVn2": ["http://www.lighthouselabs.ca", "123@tinyapp.com"],
