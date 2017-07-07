@@ -8,14 +8,21 @@
       <tr>
         <th>Short</th>
         <th>Original URL</th>
+        <th>View</th>
         <th>Edit</th>
         <th>Delete</th>
+        <th>Go</th>
       </tr>
       <% for (var url in urls) { %>
         <% if (urls[url][1] === email) { %>
           <tr>
             <td><%= url %></td>
             <td><%= urls[url][0] %></td>
+            <td>
+              <form method="GET" action="/urls/<%= url %>">
+                <button type="submit"><i class="fa fa-eye"></i></button>
+              </form>
+            </td>
             <td>
               <form method="GET" action="/urls/<%= url %>/edit">
                 <button type="submit"><i class="fa fa-pencil-square-o"></i></button>
@@ -24,6 +31,11 @@
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
                 <button type="submit"><i class="fa fa-trash"></i></button>
+              </form>
+            </td>
+            <td>
+              <form method="GET" action="/u/<%= url %>">
+                <button type="submit"><i class="fa fa-external-link"></i></button>
               </form>
             </td>
           </tr>

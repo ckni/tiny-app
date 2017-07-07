@@ -5,9 +5,9 @@
   <body>
     <% include partials/_header %>
     <form method="POST" action="/urls?key=<%= url %>">
-      <button class="status" disabled>Short URL: <%= url %></button>
+      <button class="status" style="color:black;" disabled>Short URL: <%= url %></button>
       <input id="longURL" type="text" name="longURL" placeholder="<%= urls[url][0] %>" style="width:300px;">
-      <input type="submit" value="Shorten" class="blue">
+      <input type="submit" value="Update" class="blue">
     </form>
     <% include partials/_footer.ejs %>
   </body>

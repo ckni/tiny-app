@@ -1,0 +1,13 @@
+<html lang="en">
+  <head>
+    <% include partials/_head %>
+  </head>
+  <body>
+    <% include partials/_header %>
+    <form method="GET" action="/urls/<%= id %>/edit">
+      <input class="status" style="width:500px;color:black;" value="Shortened link from '<%= url %>' to '<%= id %>'" disabled>
+      <input type="submit" class="blue" style="width:100px;" value="Edit">
+    </form>
+    <% include partials/_footer.ejs %>
+  </body>
+</html>

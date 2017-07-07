@@ -21,6 +21,11 @@ let urlDatabase = {
   "9sm5xK": ["http://www.google.com", "123@tinyapp.com"]
 };
 
+// encrypt string
+function encrypt(string) {
+  return bcrypt.hashSync(string, 10);
+}
+
 // hardcoded sample user database
 let usrDatabase = {
   "123@tinyapp.com": {
@@ -51,11 +56,6 @@ function generateURL() {
   }
 }
 
-// encrypt password
-function encrypt(password) {
-  return bcrypt.hashSync(password, 10);
-}
-
 // check if logged in
 function login(req) {
   if (req.session.email) {
@@ -66,21 +66,39 @@ function login(req) {
 
 // check if "http://" is missing
 function hasHTTP(URL) {
-  if (url.length > 4) {
+  if (URL.length > 4) {
     return `${URL[0]}${URL[1]}${URL[2]}${URL[3]}` === "http";
   }
   return false;
 }
 
-// new URL page
+// home page
 app.get("/", (req, res) => {
-  const templateVars = { email: login(req) };
-  res.render("urls_new", templateVars);
+  if (login(req) === "guest") {
+    res.redirect("/login");
+  } else {
+    res.redirect("/urls/new");
+  }
+});
+
+// new link page
+app.get("/urls/new", (req, res) => {
+  const email = login(req);
+  if (email === "guest") {
+    res.redirect("/login");
+  } else {
+    const templateVars = { email: email };
+    res.render("urls_new", templateVars);
+  }
 });
 
 // login page
 app.get("/login", (req, res) => {
-  res.render("login");
+  if (login(req) !== "guest") {
+    res.redirect("/urls");
+  } else {
+    res.render("login");
+  }
 });
 
 // login endpoint
@@ -102,12 +120,16 @@ app.post("/login", (req, res) => {
 // logout endpoint
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect("/");
+  res.redirect("/urls");
 });
 
 // register page
 app.get("/register", (req, res) => {
-  res.render("register");
+  if (login(req) !== "guest") {
+    res.redirect("/urls");
+  } else {
+    res.render("register");
+  }
 });
 
 // register endpoint
@@ -115,7 +137,7 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (email == "" || password == "") {
-    res.status(400).redirect("/error?code=400&message=empty_email_and/or_password_field");
+    res.status(400).redirect("/error?code=400&message=empty_email_or_password_field");
   }
 
   if (!usrDatabase[email]) {
@@ -140,7 +162,7 @@ app.post("/urls", (req, res) => {
 
   function store() {
     urlDatabase[key] = [req.body.longURL, email];
-    res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
+    res.redirect("/urls/" + key);
   }
 
   if (urlDatabase[key]) {
@@ -156,14 +178,19 @@ app.post("/urls", (req, res) => {
   }
 });
 
-// success page
-app.get("/urls/added/:key", (req, res) => {
-  const templateVars = {
-    url: req.query.url,
-    id: req.params.key,
-    email: login(req)
-  };
-  res.render("urls_success", templateVars);
+// view link page
+app.get("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  if (urlDatabase[id]) {
+    const templateVars = {
+      url: urlDatabase[id][0],
+      id: id,
+      email: login(req)
+    };
+    res.render("urls_view", templateVars);
+  } else {
+    res.status(404).redirect("/we_could_not_find_that");
+  }
 });
 
 // TinyLinks page
