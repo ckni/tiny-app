@@ -13,8 +13,8 @@ app.use(cookieParser());
 
 // hardcoded sample url database
 let urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": ["http://www.lighthouselabs.ca", "123@tinyapp.com"],
+  "9sm5xK": ["http://www.google.com", "123@tinyapp.com"]
 };
 
 // hardcoded sample user database
@@ -51,6 +51,16 @@ function generateRandomString() {
 // encrypt and store password
 function encrypt(password, email) {
   usrDatabase[email].password = bcrypt.hashSync(password, 10);
+}
+
+// check if "http://" is missing
+function missingProtocol(url) {
+  if (url.length > 4) {
+    let firstFour = `${url[0]}${url[1]}${url[2]}${url[3]}`;
+    return firstFour !== "http";
+  } else {
+    return true;
+  }
 }
 
 // new URL page
@@ -116,28 +126,52 @@ app.post("/register", (req, res) => {
 
 // add/edit link to database
 app.post("/urls", (req, res) => {
+  const email = req.cookies.email;
   let key = req.query.key;
-  if (!key) {
-    key = generateRandomString();
+  if (!email) {
+    res.redirect("/login");
+  } else if (urlDatabase[key]) {
+    if (urlDatabase[key][1] !== email) {
+      res.status(401).redirect("/");
+    } else if (!key) {
+      key = generateRandomString();
+      urlDatabase[key] = [req.body.longURL, email];
+      res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
+    } else {
+      urlDatabase[key] = [req.body.longURL, email];
+      res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
+    }
+    res.status(401).redirect("/");
+  } else {
+    if (!key) {
+      key = generateRandomString();
+    }
+    urlDatabase[key] = [req.body.longURL, email];
+    res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
   }
-  urlDatabase[key] = req.body.longURL;
-  res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
+  res.status(401).redirect("/");
 });
 
 // success page
 app.get("/urls/added/:key", (req, res) => {
-  const templateVars = {
-    url: req.query.url,
-    id: req.params.key,
-    email: "guest"
-  };
-  if (req.cookies.email) {
-    templateVars.email = req.cookies.email;
+  const url = req.query.url;
+  const id = req.params.key;
+  if (!urlDatabase[id] || urlDatabase[id][0] !== url) {
+    res.status(404).redirect("/whatYouTrynaDoLol");
+  } else {
+    const templateVars = {
+      url: url,
+      id: id,
+      email: "guest"
+    };
+    if (req.cookies.email) {
+      templateVars.email = req.cookies.email;
+    }
+    res.render("urls_success", templateVars);
   }
-  res.render("urls_success", templateVars);
 });
 
-// database page
+// TinyLinks page
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
@@ -151,21 +185,34 @@ app.get("/urls", (req, res) => {
 
 // go to edit URL page
 app.get("/urls/:id/edit", (req, res) => {
-  let templateVars = {
-    urls: urlDatabase,
-    url: req.params.id,
-    email: "guest"
-  };
-  if (req.cookies.email) {
-    templateVars.email = req.cookies.email;
+  const id = req.params.id;
+  if (urlDatabase[id]) {
+    let templateVars = {
+      urls: urlDatabase,
+      url: id,
+      email: "guest"
+    };
+    if (req.cookies.email) {
+      templateVars.email = req.cookies.email;
+    }
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(404).redirect("/whyDidYouDoThat");
   }
-  res.render("urls_show", templateVars);
 });
 
 // delete URL page
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  const email = req.cookies.email;
+  if (email) {
+    if (email === urlDatabase[req.params.id][1]) {
+      delete urlDatabase[req.params.id];
+      res.redirect("/urls");
+    }
+    res.status(401).redirect("/whyWouldYouEvenTryThat");
+  } else {
+    res.status(401).redirect("/whyYouCheekyLittle");
+  }
 });
 
 // database in JSON format
@@ -175,11 +222,20 @@ app.get("/urls.json", (req, res) => {
 
 // redirection
 app.get("/u/:shortURL", (req, res) => {
-  let linkVerify = `${longURL[0]}${longURL[1]}${longURL[2]}${longURL[3]}`;
-  if (linkVerify !== "http") {
-    longURL = "http://" + longURL;
+  let longURL = urlDatabase[req.params.shortURL][0];
+  if (longURL) {
+    if (missingProtocol(longURL)) {
+      longURL = "http://" + longURL;
+    }
+    res.redirect(longURL);
+  } else {
+    res.status(404).redirect("/Wut");
   }
-  res.redirect(longURL);
+});
+
+// custom 404 page
+app.get("*", (req, res) => {
+  res.render("404");
 });
 
 // start listening on port
