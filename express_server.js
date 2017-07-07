@@ -3,15 +3,19 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcrypt");
 const PORT = process.env.PORT || 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ["-412m463dd0N-"],
+  maxAge: 24 * 60 * 60 * 1000
+}));
 
-// hardcoded sample url database
+// hardcoded sample URL database
 let urlDatabase = {
   "b2xVn2": ["http://www.lighthouselabs.ca", "123@tinyapp.com"],
   "9sm5xK": ["http://www.google.com", "123@tinyapp.com"]
@@ -20,19 +24,17 @@ let urlDatabase = {
 // hardcoded sample user database
 let usrDatabase = {
   "123@tinyapp.com": {
-    email: "123@tinyapp.com"
+    email: "123@tinyapp.com",
+    password: encrypt("123")
   },
   "234@tinyapp.com": {
-    email: "234@tinyapp.com"
+    email: "234@tinyapp.com",
+    password: encrypt("234")
   }
 };
 
-encrypt("123", "123@tinyapp.com");
-encrypt("234", "234@tinyapp.com");
-
-// generate a key or ID
-function generateRandomString() {
-
+// generate a short URL
+function generateURL() {
   const letters = "abcdefghijklmnopqrstuvwxyz";
   const possible = letters + letters.toUpperCase() + "0123456789";
   let string = "";
@@ -41,34 +43,38 @@ function generateRandomString() {
     string += possible[Math.floor(Math.random() * possible.length)];
   }
 
+  // check if URL already exists
   if (urlDatabase[string]) {
-    string = generateRandomString();
+    string = generateURL();
   } else {
     return string;
   }
 }
 
-// encrypt and store password
-function encrypt(password, email) {
-  usrDatabase[email].password = bcrypt.hashSync(password, 10);
+// encrypt password
+function encrypt(password) {
+  return bcrypt.hashSync(password, 10);
+}
+
+// check if logged in
+function login(req) {
+  if (req.session.email) {
+    return req.session.email;
+  }
+  return "guest";
 }
 
 // check if "http://" is missing
-function missingProtocol(url) {
+function hasHTTP(URL) {
   if (url.length > 4) {
-    let firstFour = `${url[0]}${url[1]}${url[2]}${url[3]}`;
-    return firstFour !== "http";
-  } else {
-    return true;
+    return `${URL[0]}${URL[1]}${URL[2]}${URL[3]}` === "http";
   }
+  return false;
 }
 
 // new URL page
 app.get("/", (req, res) => {
-  const templateVars = { email: "guest" };
-  if (req.cookies.email) {
-    templateVars.email = req.cookies.email;
-  }
+  const templateVars = { email: login(req) };
   res.render("urls_new", templateVars);
 });
 
@@ -84,7 +90,7 @@ app.post("/login", (req, res) => {
   if (usrDatabase[email]) {
     bcrypt.compare(password, usrDatabase[email].password, (err, match) => {
       if (match) {
-        res.cookie("email", email);
+        req.session.email = email;
       }
       res.redirect("/");
     });
@@ -95,7 +101,7 @@ app.post("/login", (req, res) => {
 
 // logout endpoint
 app.post("/logout", (req, res) => {
-  res.clearCookie("email");
+  req.session = null;
   res.redirect("/");
 });
 
@@ -109,77 +115,63 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (email == "" || password == "") {
-    res.status(400).send("Empty email or password");
+    res.status(400).redirect("/error?code=400&message=empty_email_and/or_password_field");
   }
+
   if (!usrDatabase[email]) {
     usrDatabase[email] = {
-      email: email
+      email: email,
+      password: encrypt(password)
     };
-    encrypt(password, email);
-    console.log(usrDatabase);
-    res.cookie("email", email);
+    req.session.email = email;
     res.redirect("/");
   } else {
-    res.status(400).send("Email already registered");
+    res.status(400).redirect("/error?code=400&message=email_already_registered");
   }
 });
 
 // add/edit link to database
 app.post("/urls", (req, res) => {
-  const email = req.cookies.email;
+  const email = login(req);
   let key = req.query.key;
-  if (!email) {
-    res.redirect("/login");
-  } else if (urlDatabase[key]) {
-    if (urlDatabase[key][1] !== email) {
-      res.status(401).redirect("/");
-    } else if (!key) {
-      key = generateRandomString();
-      urlDatabase[key] = [req.body.longURL, email];
-      res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
-    } else {
-      urlDatabase[key] = [req.body.longURL, email];
-      res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
-    }
-    res.status(401).redirect("/");
-  } else {
-    if (!key) {
-      key = generateRandomString();
-    }
+  if (!key) {
+    key = generateURL();
+  }
+
+  function store() {
     urlDatabase[key] = [req.body.longURL, email];
     res.redirect(`/urls/added/${key}?url=${req.body.longURL}`);
   }
-  res.status(401).redirect("/");
+
+  if (urlDatabase[key]) {
+    if (urlDatabase[key][1] !== email) {
+      res.status(401).redirect("/error?code=401&message=you_are_not_allowed_to_do_that");
+    } else {
+      store();
+    }
+  } else if (email === "guest") {
+    res.redirect("/login");
+  } else {
+    store();
+  }
 });
 
 // success page
 app.get("/urls/added/:key", (req, res) => {
-  const url = req.query.url;
-  const id = req.params.key;
-  if (!urlDatabase[id] || urlDatabase[id][0] !== url) {
-    res.status(404).redirect("/whatYouTrynaDoLol");
-  } else {
-    const templateVars = {
-      url: url,
-      id: id,
-      email: "guest"
-    };
-    if (req.cookies.email) {
-      templateVars.email = req.cookies.email;
-    }
-    res.render("urls_success", templateVars);
-  }
+  const templateVars = {
+    url: req.query.url,
+    id: req.params.key,
+    email: login(req)
+  };
+  res.render("urls_success", templateVars);
 });
 
 // TinyLinks page
 app.get("/urls", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    email: "guest"
+    email: login(req)
   };
-  if (req.cookies.email) {
-    templateVars.email = req.cookies.email;
-  }
   res.render("urls_index", templateVars);
 });
 
@@ -190,28 +182,22 @@ app.get("/urls/:id/edit", (req, res) => {
     let templateVars = {
       urls: urlDatabase,
       url: id,
-      email: "guest"
+      email: login(req)
     };
-    if (req.cookies.email) {
-      templateVars.email = req.cookies.email;
-    }
     res.render("urls_show", templateVars);
   } else {
-    res.status(404).redirect("/whyDidYouDoThat");
+    res.status(401).redirect("/error?code=401&message=you_are_not_allowed_to_do_that");
   }
 });
 
 // delete URL page
 app.post("/urls/:id/delete", (req, res) => {
-  const email = req.cookies.email;
-  if (email) {
-    if (email === urlDatabase[req.params.id][1]) {
-      delete urlDatabase[req.params.id];
-      res.redirect("/urls");
-    }
-    res.status(401).redirect("/whyWouldYouEvenTryThat");
+  const email = login(req);
+  if (email === urlDatabase[req.params.id][1]) {
+    delete urlDatabase[req.params.id];
+    res.redirect("/urls");
   } else {
-    res.status(401).redirect("/whyYouCheekyLittle");
+    res.status(401).redirect("/error?code=401&message=you_are_not_allowed_to_do_that");
   }
 });
 
@@ -224,13 +210,22 @@ app.get("/urls.json", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL][0];
   if (longURL) {
-    if (missingProtocol(longURL)) {
+    if (!hasHTTP(longURL)) {
       longURL = "http://" + longURL;
     }
     res.redirect(longURL);
   } else {
-    res.status(404).redirect("/Wut");
+    res.status(404).redirect("/that_does_not_exist");
   }
+});
+
+// custom error page
+app.get("/error", (req, res) => {
+  const templateVars = {
+    message: req.query.message.split("_").join(" "),
+    code: req.query.code
+  };
+  res.render("error", templateVars);
 });
 
 // custom 404 page
