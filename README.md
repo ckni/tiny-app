@@ -56,3 +56,12 @@ let usrDatabase = {
 
 * Install all dependencies by running `npm install` in command line
 * Start the development web server by running `node express_server.js` in command line
+
+### Hi There
+Thank you for checking out my project. You may or may not have noticed that the commit for this addition to the README.md file is about 5-6 years newer than everything else. You see, that's because I need to test if I have my SSH keys set up correctly.
+
+I set up 2FA for GitHub, and I [REDACTED] it up and got locked out of my account, so the only form of verification I have left is my SSH keys. I also switched to a new computer, and had not yet set up SSH keys on it. So I've copied over the keys manually from the old to the new computer, and am now testing to check if it works.
+
+I'll be filing a request to recover my GitHub account -- there's an option to upload your most recently used SSH authentication info along with verifying your email address in order to reset the 2FA. But first, testing to see if the SSH keys even work.
+
+Moral of the story, don't accidentally delete your 2FA stuff and lock yourself out of your accounts. It's kind of a hassle :)
